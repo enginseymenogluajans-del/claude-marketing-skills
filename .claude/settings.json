@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *.py *)",
+      "Bash(python .claude/skills/*/scripts/*.py *)",
+      "Bash(python3 .claude/skills/*/scripts/*.py *)",
+      "Bash(mkdir -p .claude/skills/*)",
+      "Bash(pip install *)",
+      "WebSearch",
+      "WebFetch"
+    ]
+  }
+}

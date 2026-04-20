@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>adamagent.com.tr — A/B Test Varyantları</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #f5f5f5; margin: 0; }
+    ::selection { background: #e85d04; color: #fff; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    /* ── shared components ── */
+    const Badge = ({ children, color = "orange" }) => {
+      const colors = {
+        orange: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+        green:  "bg-green-500/20  text-green-400  border-green-500/30",
+        red:    "bg-red-500/20    text-red-400    border-red-500/30",
+        blue:   "bg-blue-500/20   text-blue-400   border-blue-500/30",
+      };
+      return <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded border ${colors[color]}`}>{children}</span>;
+    };
+
+    const ICEBar = ({ impact, confidence, ease }) => {
+      const ice = Math.round((impact * confidence * ease) / 3);
+      const pct = Math.min(100, (ice / 200) * 100);
+      return (
+        <div className="mt-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-neutral-500">ICE Skoru</span>
+            <span className="text-sm font-bold text-[#e85d04]">{ice}</span>
+          </div>
+          <div className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+            <div className="h-full bg-[#e85d04] rounded-full transition-all" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="flex gap-3 mt-1.5 text-xs text-neutral-600">
+            <span>Impact <b className="text-neutral-400">{impact}</b></span>
+            <span>Confidence <b className="text-neutral-400">{confidence}</b></span>
+            <span>Ease <b className="text-neutral-400">{ease}</b></span>
+          </div>
+        </div>
+      );
+    };
+
+    const SplitView = ({ control, variant }) => (
+      <div className="grid grid-cols-2 gap-3 mt-4">
+        <div className="bg-neutral-900 border border-neutral-700 rounded-lg p-4">
+          <p className="text-xs font-semibold tracking-widest uppercase text-neutral-500 mb-2">Kontrol</p>
+          {control}
+        </div>
+        <div className="bg-neutral-900 border border-[#e85d04]/40 rounded-lg p-4">
+          <p className="text-xs font-semibold tracking-widest uppercase text-[#e85d04] mb-2">Varyant</p>
+          {variant}
+        </div>
+      </div>
+    );
+
+    const Steps = ({ items }) => (
+      <ol className="mt-3 space-y-1">
+        {items.map((s, i) => (
+          <li key={i} className="flex gap-2 text-sm text-neutral-400">
+            <span className="text-[#e85d04] font-bold shrink-0">{i + 1}.</span>
+            <span>{s}</span>
+          </li>
+        ))}
+      </ol>
+    );
+
+    const CopyButton = ({ text }) => {
+      const [done, setDone] = useState(false);
+      const copy = () => {
+        navigator.clipboard.writeText(text).then(() => {
+          setDone(true);
+          setTimeout(() => setDone(false), 1800);
+        });
+      };
+      return (
+        <button onClick={copy} className={`text-xs px-2 py-1 rounded transition-colors ${done ? "bg-green-700 text-green-100" : "bg-neutral-800 hover:bg-neutral-700 text-neutral-400 border border-neutral-700"}`}>
+          {done ? "Kopyalandı!" : "Kopyala"}
+        </button>
+      );
+    };
+
+    /* ══════════════════════════════════════════
+       TEST COMPONENTS
+    ══════════════════════════════════════════ */
+
+    /* TEST 1 — Headlines */
+    const Test1 = () => {
+      const variants = [
+        "Haftada 20 Saat Kazan — AI Ajanları Sizin İçin Çalışsın",
+        "Tekrar Eden İşleri Bitirin: KOBİ'ler ve Ajanslar İçin Yapay Zeka Otomasyonu",
+        "Müşterilerinize Odaklanın — Rutin İşleri AI Ajanlarımıza Bırakın",
+        "50+ Şirket Zaten Otomatik Çalışıyor. Sıradaki Siz Olun.",
+      ];
+      return (
+        <div>
+          <SplitView
+            control={<h1 className="text-xl font-bold text-neutral-100">AI Ajanlarıyla İşinizi Otomatikleştirin</h1>}
+            variant={<h1 className="text-xl font-bold text-white">Haftada 20 Saat Kazan — AI Ajanları Sizin İçin Çalışsın</h1>}
+          />
+          <p className="text-xs text-neutral-500 mt-4 mb-2 font-semibold uppercase tracking-widest">4 Test Edilebilir Başlık</p>
+          <div className="space-y-2">
+            {variants.map((v, i) => (
+              <div key={i} className="flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded px-3 py-2.5 gap-3">
+                <span className="text-sm text-neutral-200 flex-1">{v}</span>
+                <CopyButton text={v} />
+              </div>
+            ))}
+          </div>
+          <Steps items={[
+            "Google Optimize veya VWO'da yeni deney oluştur",
+            "H1 elementini seç (CSS: h1 veya .hero-title)",
+            "Her varyantı ayrı deney kolu olarak ekle (%25/%25/%25/%25)",
+            "Minimum 2 hafta / varyant başına 500+ ziyaretçi bekle",
+            "GA4'te demo-form-submit event'ini hedef olarak ayarla",
+          ]} />
+          <ICEBar impact={8} confidence={8} ease={9} />
+        </div>
+      );
+    };
+
+    /* TEST 2 — CTA */
+    const Test2 = () => (
+      <div>
+        <SplitView
+          control={
+            <div className="flex flex-col gap-2">
+              <button className="w-full bg-blue-600 text-white text-sm font-semibold py-2.5 rounded">Hemen Başla</button>
+              <button className="w-full border border-neutral-600 text-neutral-300 text-sm font-semibold py-2.5 rounded">Demo Al</button>
+            </div>
+          }
+          variant={
+            <div className="flex flex-col gap-2">
+              <button className="w-full bg-[#e85d04] text-white text-sm font-semibold py-2.5 rounded">Ücretsiz Demo İste →</button>
+              <button className="w-full border border-neutral-600 text-neutral-300 text-sm font-semibold py-2.5 rounded">15 Dk. Demo Ayarla</button>
+            </div>
+          }
+        />
+        <div className="mt-3 p-3 bg-neutral-900 border border-neutral-800 rounded text-sm text-neutral-400">
+          <b className="text-neutral-200">Mikrokopya:</b> Buton altına ekle →{" "}
+          <span className="text-[#e85d04]">"Kredi kartı gerekmez · 48 saat içinde yanıt"</span>
+        </div>
+        <Steps items={[
+          "Birincil CTA buton metnini değiştir (sadece metin — renk sabit)",
+          "İkincil 'Demo Al' → '15 Dk. Demo Ayarla' yap",
+          "Her CTA'ya UTM: ?utm_source=hero&utm_content=cta-v2 ekle",
+          "Tıklama → Form açma → Submit oranını huni olarak izle",
+        ]} />
+        <ICEBar impact={7} confidence={7} ease={9} />
+      </div>
+    );
+
+    /* TEST 3 — Form */
+    const Test3 = () => (
+      <div>
+        <SplitView
+          control={
+            <form className="flex flex-col gap-2" onSubmit={e => e.preventDefault()}>
+              <input className="bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-300 placeholder-neutral-600" placeholder="İsim" />
+              <input className="bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-300 placeholder-neutral-600" placeholder="E-posta" />
+              <textarea className="bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-300 placeholder-neutral-600 resize-none h-16" placeholder="Mesaj" />
+              <button className="bg-blue-600 text-white text-sm font-semibold py-2 rounded">Gönder</button>
+            </form>
+          }
+          variant={
+            <form className="flex flex-col gap-2" onSubmit={e => e.preventDefault()}>
+              <p className="text-xs text-neutral-500 mb-1">E-posta adresinizi bırakın, sizi arayalım.</p>
+              <input className="bg-neutral-800 border border-[#e85d04]/50 rounded px-3 py-2.5 text-sm text-neutral-300 placeholder-neutral-600" placeholder="email@sirketiniz.com" />
+              <button className="bg-[#e85d04] text-white text-sm font-semibold py-2.5 rounded">Demo Talep Et →</button>
+              <p className="text-xs text-neutral-600 text-center">48 saat içinde geri dönüyoruz.</p>
+            </form>
+          }
+        />
+        <Steps items={[
+          "İletişim formundan İsim ve Mesaj alanlarını kaldır",
+          "Placeholder'ı 'email@sirketiniz.com' yap (B2B sinyali)",
+          "Submit butonunu 'Demo Talep Et →' olarak güncelle",
+          "Formu gönderdikten sonra teşekkür sayfasında isim sor",
+          "Form-view → submit dönüşüm oranını GA4 ile karşılaştır",
+        ]} />
+        <ICEBar impact={6} confidence={8} ease={8} />
+      </div>
+    );
+
+    /* TEST 4 — Metric Hero */
+    const Test4 = () => (
+      <div>
+        <SplitView
+          control={
+            <div className="space-y-2">
+              <h1 className="text-lg font-bold text-neutral-100">AI Ajanlarıyla İşinizi Otomatikleştirin</h1>
+              <p className="text-sm text-neutral-500">Metrikler sayfanın ilerleyen bölümünde...</p>
+            </div>
+          }
+          variant={
+            <div className="space-y-2">
+              <h1 className="text-lg font-bold text-white">AI Ajanlarıyla İşinizi Otomatikleştirin</h1>
+              <div className="flex gap-3 flex-wrap">
+                <span className="text-xs bg-neutral-800 border border-neutral-700 px-2 py-1 rounded font-semibold text-[#e85d04]">⏱ %70 Zaman Tasarrufu</span>
+                <span className="text-xs bg-neutral-800 border border-neutral-700 px-2 py-1 rounded font-semibold text-neutral-300">✓ 50+ Aktif Müşteri</span>
+                <span className="text-xs bg-neutral-800 border border-neutral-700 px-2 py-1 rounded font-semibold text-neutral-300">🚀 7/24 Otomasyon</span>
+              </div>
+            </div>
+          }
+        />
+        <div className="mt-3 bg-neutral-900 border border-neutral-800 rounded p-3">
+          <p className="text-xs font-semibold text-neutral-400 mb-2">Kopyala — HTML snippet</p>
+          <code className="text-xs text-green-400 block leading-relaxed">
+            {`<div class="hero-stats">
+  <span>⏱ %70 Zaman Tasarrufu</span>
+  <span>✓ 50+ Aktif Müşteri</span>
+  <span>🚀 7/24 Otomasyon</span>
+</div>`}
+          </code>
+        </div>
+        <Steps items={[
+          "Mevcut metrik metnini bul (sayfanın ilerleyen bölümünde)",
+          "H1 ve alt başlık arasına 'hero-stats' div'i ekle",
+          "Her stat için ikon + kalın rakam + açıklama formatı kullan",
+          "Above-the-fold olduğunu 375px/768px/1280px ekranlarında doğrula",
+        ]} />
+        <ICEBar impact={6} confidence={7} ease={9} />
+      </div>
+    );
+
+    /* TEST 5 — Social Proof */
+    const Test5 = () => {
+      const cards = [
+        { name: "Mehmet A.", role: "KOBİ Sahibi", quote: "Satış takibimizi %40 hızlandırdı, artık manuel rapor yok.", initials: "MA" },
+        { name: "Selin K.", role: "Dijital Ajans", quote: "Sosyal medya otomasyonu sayesinde haftada 15 saat kazanıyoruz.", initials: "SK" },
+        { name: "Emre T.", role: "Girişimci", quote: "Mail otomasyonu ilk ayda 3 yeni müşteri getirdi.", initials: "ET" },
+      ];
+      return (
+        <div>
+          <p className="text-xs text-neutral-500 mb-3">Kontrol: Logo şeridi + "50+ aktif müşteri" &nbsp;→&nbsp; <b className="text-neutral-300">Varyant:</b> Kimlikli referans kartları</p>
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {cards.map((c, i) => (
+              <div key={i} className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-[#e85d04]/20 text-[#e85d04] flex items-center justify-center text-xs font-bold shrink-0">{c.initials}</div>
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-200">{c.name}</p>
+                    <p className="text-xs text-neutral-600">{c.role}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 italic">"{c.quote}"</p>
+              </div>
+            ))}
+          </div>
+          <Steps items={[
+            "3–5 aktif müşteriden yazılı onay al (WhatsApp/e-posta)",
+            "İsim + unvan + tek cümle sonuç şablonunu doldurt",
+            "Fotoğraf varsa ekle, yoksa isim baş harfi avatarı kullan",
+            "Logo şeridinin hemen altına, CTA'nın üstüne yerleştir",
+            "Hotjar veya Microsoft Clarity ile kart görüntüleme süresini izle",
+          ]} />
+          <ICEBar impact={7} confidence={7} ease={5} />
+        </div>
+      );
+    };
+
+    /* ── GTM CODE SNIPPET ── */
+    const GTMSnippet = () => {
+      const code = `// Google Tag Manager — A/B Test Event Tracking
+// dataLayer.push ile tüm 5 testi izle
+
+// Test 1: Headline görüntüleme
+dataLayer.push({
+  event: 'ab_test_impression',
+  test_id: 'T1_headline',
+  variant: 'variant_a', // veya control
+});
+
+// CTA tıklama
+document.querySelector('.hero-cta-primary')
+  ?.addEventListener('click', () => {
+    dataLayer.push({
+      event: 'ab_test_click',
+      test_id: 'T2_cta',
+      element: 'primary_cta',
+    });
+  });
+
+// Form submit
+document.querySelector('#contact-form')
+  ?.addEventListener('submit', () => {
+    dataLayer.push({
+      event: 'ab_test_conversion',
+      test_id: 'T3_form',
+      form_fields: document.querySelectorAll('#contact-form input').length,
+    });
+  });`;
+
+      const [copied, setCopied] = useState(false);
+      const copy = () => {
+        navigator.clipboard.writeText(code).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      };
+
+      return (
+        <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-neutral-300">GTM Event Tracking Snippet</p>
+            <button onClick={copy} className={`text-xs px-3 py-1 rounded transition-colors ${copied ? "bg-green-700 text-green-100" : "bg-neutral-800 hover:bg-neutral-700 text-neutral-400 border border-neutral-700"}`}>
+              {copied ? "Kopyalandı!" : "Kopyala"}
+            </button>
+          </div>
+          <pre className="text-xs text-green-400 overflow-auto leading-relaxed">{code}</pre>
+        </div>
+      );
+    };
+
+    /* ══════════════════════════════════════════
+       MAIN APP
+    ══════════════════════════════════════════ */
+    const TESTS = [
+      { id: "T1", label: "Headlines", title: "H1 → Sonuç Odaklı Başlık", ice: 192, quick: true,  component: <Test1 /> },
+      { id: "T2", label: "CTAs",      title: "CTA → Düşük Sürtünmeli",   ice: 147, quick: true,  component: <Test2 /> },
+      { id: "T3", label: "Forms",     title: "Form → Tek Alan",           ice: 128, quick: false, component: <Test3 /> },
+      { id: "T4", label: "Copy",      title: "Hero'ya Metrik Taşı",       ice: 126, quick: false, component: <Test4 /> },
+      { id: "T5", label: "Social",    title: "Sosyal Kanıt Güçlendirme",  ice: 82,  quick: false, component: <Test5 /> },
+    ];
+
+    function App() {
+      const [active, setActive] = useState(0);
+      const [tab, setTab] = useState("tests");
+
+      return (
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-1 h-5 bg-[#e85d04] rounded-full" />
+              <span className="text-xs font-semibold tracking-widest uppercase text-[#e85d04]">adamagent.com.tr</span>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">A/B Test Implementasyonları</h1>
+            <p className="text-sm text-neutral-500 mt-1">5 test · 2 hızlı kazanım · GTM snippet dahil</p>
+          </div>
+
+          {/* Priority table */}
+          <div className="mb-8 overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-neutral-800">
+                  <th className="text-left py-2 pr-4 text-xs text-neutral-500 uppercase tracking-wider font-semibold">#</th>
+                  <th className="text-left py-2 pr-4 text-xs text-neutral-500 uppercase tracking-wider font-semibold">Test</th>
+                  <th className="text-left py-2 pr-4 text-xs text-neutral-500 uppercase tracking-wider font-semibold">Kategori</th>
+                  <th className="text-right py-2 pr-4 text-xs text-neutral-500 uppercase tracking-wider font-semibold">ICE</th>
+                  <th className="text-right py-2 text-xs text-neutral-500 uppercase tracking-wider font-semibold">Hızlı?</th>
+                </tr>
+              </thead>
+              <tbody>
+                {TESTS.map((t, i) => (
+                  <tr
+                    key={t.id}
+                    onClick={() => { setActive(i); setTab("tests"); }}
+                    className={`border-b border-neutral-900 cursor-pointer transition-colors ${active === i ? "bg-neutral-900" : "hover:bg-neutral-900/50"}`}
+                  >
+                    <td className="py-2.5 pr-4 font-mono text-xs text-neutral-600">{t.id}</td>
+                    <td className="py-2.5 pr-4 font-medium text-neutral-200">{t.title}</td>
+                    <td className="py-2.5 pr-4"><Badge>{t.label}</Badge></td>
+                    <td className="py-2.5 pr-4 text-right font-bold text-[#e85d04]">{t.ice}</td>
+                    <td className="py-2.5 text-right">{t.quick ? <Badge color="green">✅ Evet</Badge> : <span className="text-neutral-600 text-xs">Hayır</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Tab nav */}
+          <div className="flex gap-1 mb-6 border-b border-neutral-800">
+            {["tests", "gtm"].map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t ? "border-[#e85d04] text-[#e85d04]" : "border-transparent text-neutral-500 hover:text-neutral-300"}`}
+              >
+                {t === "tests" ? "Test Varyantları" : "GTM Kodu"}
+              </button>
+            ))}
+          </div>
+
+          {tab === "tests" && (
+            <div>
+              {/* Test selector */}
+              <div className="flex gap-2 mb-6 flex-wrap">
+                {TESTS.map((t, i) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setActive(i)}
+                    className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors ${active === i ? "bg-[#e85d04] text-white" : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800 border border-neutral-800"}`}
+                  >
+                    {t.id}: {t.label}
+                    {t.quick && <span className="ml-1">✅</span>}
+                  </button>
+                ))}
+              </div>
+
+              {/* Active test */}
+              <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-1">
+                  <div>
+                    <h2 className="text-lg font-bold text-neutral-100">{TESTS[active].title}</h2>
+                    <div className="flex gap-2 mt-1">
+                      <Badge>{TESTS[active].label}</Badge>
+                      {TESTS[active].quick && <Badge color="green">Hızlı Kazanım ✅</Badge>}
+                    </div>
+                  </div>
+                  <span className="text-2xl font-black text-[#e85d04]">{TESTS[active].ice}</span>
+                </div>
+                {TESTS[active].component}
+              </div>
+            </div>
+          )}
+
+          {tab === "gtm" && <GTMSnippet />}
+
+          <p className="text-center text-xs text-neutral-700 mt-10">adamagent.com.tr A/B Test Planı · 2026-04-20</p>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
