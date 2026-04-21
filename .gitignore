@@ -33,3 +33,4 @@ node_modules/
 .claude/settings.local.json
 .claude/projects/
 .claude/memory/
+.claude/.claude/
